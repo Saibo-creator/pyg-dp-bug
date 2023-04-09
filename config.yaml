@@ -1,0 +1,17 @@
+gnn:
+  n_embd: 128
+  e_embd: 64
+  n_head: 4
+  n_layer: 4
+data:
+  num_classes: 10
+  num_graphs: 100
+  num_edges: 180000
+  num_node_types: 3
+  num_edge_types: 152 #2 * 2 * 38
+  num_nodes: 8196
+exp:
+  per_gpu_batch_size: 2
+
+
+
