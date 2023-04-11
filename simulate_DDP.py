@@ -112,6 +112,9 @@ if __name__ == '__main__':
     # Dataset(dataset_name, root,
     #         pre_transform=T.ToSparseTensor(attr='edge_attr'))
 
+
+    gpu_ids = "0,1"  # Specify the IDs of the GPUs you want to use, separated by commas
+    os.environ['CUDA_VISIBLE_DEVICES'] = gpu_ids
     world_size = torch.cuda.device_count()
     print('Let\'s use', world_size, 'GPUs!')
     args = (world_size,)
