@@ -1,3 +1,4 @@
+import copy
 import os.path as osp
 import time
 from typing import List
@@ -5,6 +6,7 @@ from typing import List
 import torch
 import torch.nn.functional as F
 import yaml
+
 from torch_geometric.data import Batch
 from torch_geometric.loader import DataListLoader
 from torch_geometric.nn import DataParallel
@@ -19,11 +21,12 @@ from fake_dataset import FakeHeteroDataset
 class Net(torch.nn.Module):
     def __init__(self, n_layer, metadata, num_classes):
         super().__init__()
+        _metadata = copy.deepcopy(metadata)
         self.convs = torch.nn.ModuleList()
         for i in range(n_layer):
             self.convs.append(HANConv(in_channels=128, out_channels=128,
                                       heads=4,
-                                      metadata=metadata))
+                                      metadata=_metadata))
         self.lin_dict = torch.nn.ModuleDict()
         self.lin = torch.nn.Linear(128, num_classes)
 
