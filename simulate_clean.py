@@ -45,6 +45,20 @@ class Net(torch.nn.Module):
         return F.log_softmax(self.lin(x_select), dim=1)
 
 
+def train_loop(loader, model, optimizer):
+    for data_list in tqdm(loader):
+        optimizer.zero_grad()
+        start = time.time()
+        output = model(data_list)
+        end = time.time()
+        print(f'Forward pass time: {end - start}')
+        y = torch.cat([data.y for data in data_list]).to(output.device)
+        loss = F.nll_loss(output, y)
+        loss.backward()
+        print(f'Backward pass time: {time.time() - end}')
+        # optimizer.step()
+
+
 def main(num_gpu=1, device_ids=None):
 
     large_graph_dataset = FakeHeteroDataset(num_graphs=100,
@@ -75,17 +89,9 @@ def main(num_gpu=1, device_ids=None):
         model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-    for data_list in tqdm(loader):
-        optimizer.zero_grad()
-        start = time.time()
-        output = model(data_list)
-        end = time.time()
-        print(f'Forward pass time: {end - start}')
-        y = torch.cat([data.y for data in data_list]).to(output.device)
-        loss = F.nll_loss(output, y)
-        loss.backward()
-        print(f'Backward pass time: {time.time() - end}')
-        # optimizer.step()
+    train_loop(loader, model, optimizer)
+
+
 
 
 if __name__ == '__main__':
