@@ -11,6 +11,7 @@ from torch_geometric.nn import DataParallel
 from torch_geometric.nn.conv import HANConv
 from torch_geometric.utils.unbatch import unbatch
 from tqdm import tqdm
+import cProfile
 
 from fake_dataset import FakeHeteroDataset
 
@@ -96,34 +97,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(num_gpu=args.num_gpu, device_ids=args.device_ids)
-
-
-"""
-DataParallel with Multi GPUs doesn't speed up with large graph  data
-
-Hello,
-    I am trying to use DataParallel to speed up the training process with large graph data.
-    The large graph data here means a list of graphs, each with roughly 10,000 nodes and 100,000 edges.
-    I am using HANConv to train the model because the graphs are heterogeneous.
-    I tried to use DataParallel to speed up the training process with multiple GPUs.
-    However, I found that the training process only shows a very small speedup, e.g., 1.2x with 8 GPUs.
-     I am using PyG 2.2.0 and PyTorch 1.12.1+cu116. 
-     Below is a minimal example to reproduce the problem.
-    
-    On my machine, which is equipped with 8 NVIDIA GeForce GTX TITAN X, running the code below:
-    - With 1 GPU, the forward-backward pass takes 0.8s, the epoch time is 41s, `python simulate_clean.py --num_gpu 1`
-    - With 2 GPUs, the forward-backward pass takes 1.1s, the epoch time is 32s. `python simulate_clean.py --num_gpu 2`
-    - With 4 GPUs, the forward-backward pass takes 2.1s, the epoch time is 32s. `python simulate_clean.py --num_gpu 4`
-    - With 6 GPUs, the forward-backward pass takes 4.3s, the epoch time is 45s. `python simulate_clean.py --num_gpu 6`
-
-    Per_device_bs = 2 for all the experiments, so the batch size is 2, 4, 8, 12 for 1, 2, 4, 6 GPUs respectively.
-
-    My understanding is that the forward-backward pass should be faster with more GPUs,if the training is compute-bound.
-    But in this case, the forward-backward pass is actually slower with more GPUs so the bound must be somewhere else.
-    My guess is that the transfer of data between GPUs is the bottleneck. But I am not sure if this is the case.
-    The graphs are represented as a list of HeteroData, and each of them is roughly several MB in size.
-
-    If indeed is the case, how could we overcome this problem?
-    (I guess in computer vision, the image data could also be large, and we can use DataParallel to speed up the training process.
-    How is that possible?)
-"""
+    cProfile.run(f'main(num_gpu={args.num_gpu}, device_ids={args.device_ids})')

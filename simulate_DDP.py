@@ -1,27 +1,20 @@
 import os
 import os.path as osp
 import pickle
-import time
 from typing import List
 
-import torch
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import torch.nn.functional as F
-import yaml
-from torch.utils.data import DistributedSampler
-from torch_geometric.data import Batch
-from torch_geometric.loader import DataListLoader
-from torch_geometric.nn import DataParallel
-from torch_geometric.nn.conv import HANConv
-from torch_geometric.utils.unbatch import unbatch
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
-
-import torch_geometric.transforms as T
+from torch_geometric.data import Batch
 from torch_geometric.loader import DataLoader
+from torch_geometric.nn.conv import HANConv
+from torch_geometric.utils.unbatch import unbatch
 from tqdm import tqdm
+
 
 from fake_dataset import FakeHeteroDataset
 
@@ -103,9 +96,6 @@ def run(rank, world_size: int, ds_pkl_path:str):
 
 
 if __name__ == '__main__':
-    # # Download and process the dataset on main process.
-    # Dataset(dataset_name, root,
-    #         pre_transform=T.ToSparseTensor(attr='edge_attr'))
 
     num_graphs = 100
 
