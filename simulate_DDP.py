@@ -58,7 +58,6 @@ class Net(torch.nn.Module):
 def run(rank, world_size: int):
 
 
-
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '12355'
     dist.init_process_group('nccl', rank=rank, world_size=world_size)
@@ -70,7 +69,7 @@ def run(rank, world_size: int):
 
     train_sampler = DistributedSampler(train_dataset, num_replicas=world_size,
                                        rank=rank)
-    train_loader = DataLoader(train_dataset, batch_size=128,
+    train_loader = DataLoader(train_dataset, batch_size=4,
                               sampler=train_sampler)
 
     torch.manual_seed(12345)
@@ -87,7 +86,7 @@ def run(rank, world_size: int):
             data = data.to(rank)
             optimizer.zero_grad()
             logits = model(data)
-            loss = F.nll_loss(logits, data.y.to(torch.float))
+            loss = F.nll_loss(logits, data.y)
             # loss = criterion(logits, data.y.to(torch.float))
             loss.backward()
             optimizer.step()
@@ -126,7 +125,7 @@ if __name__ == '__main__':
 
 
 
-    gpu_ids = "0,1"  # Specify the IDs of the GPUs you want to use, separated by commas
+    gpu_ids = "6,7"  # Specify the IDs of the GPUs you want to use, separated by commas
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu_ids
     world_size = torch.cuda.device_count()
     print('Let\'s use', world_size, 'GPUs!')
