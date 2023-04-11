@@ -78,7 +78,7 @@ def run(rank, world_size: int):
                               sampler=train_sampler)
 
     torch.manual_seed(12345)
-    model = Net(n_layer=4, metadata=metadata, num_classes=train_dataset.num_classes)
+    model = Net(n_layer=4, metadata=metadata, num_classes=train_dataset.num_classes).to(rank)
     model = DistributedDataParallel(model, device_ids=[rank])
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # criterion = torch.nn.BCEWithLogitsLoss()
