@@ -34,7 +34,6 @@ class Net(torch.nn.Module):
             self.convs.append(HANConv(in_channels=128, out_channels=128,
                                       heads=4,
                                       metadata=metadata))
-        self.lin_dict = torch.nn.ModuleDict()
         self.lin = torch.nn.Linear(128, num_classes)
 
     def forward(self, graph):
@@ -66,6 +65,8 @@ def run(rank, world_size: int):
     pickle_path = osp.join(osp.dirname(osp.realpath(__file__)), 'fake_dataset.pkl')
     with open("tmp.pickle", "rb") as f:
         train_dataset = pickle.load(f)
+    
+    metadata = train_dataset.data.metadata()
 
     train_sampler = DistributedSampler(train_dataset, num_replicas=world_size,
                                        rank=rank)
@@ -74,11 +75,11 @@ def run(rank, world_size: int):
 
     torch.manual_seed(12345)
     model = Net(n_layer=4, metadata=metadata, num_classes=train_dataset.num_classes).to(rank)
-    model = DistributedDataParallel(model, device_ids=[rank])
+    model = DistributedDataParallel(model, device_ids=[rank], find_unused_parameters=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     # criterion = torch.nn.BCEWithLogitsLoss()
 
-    for epoch in range(1, 51):
+    for epoch in range(1, 3):
         model.train()
 
         total_loss = torch.zeros(2).to(rank)
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     # Dataset(dataset_name, root,
     #         pre_transform=T.ToSparseTensor(attr='edge_attr'))
 
-    train_dataset = FakeHeteroDataset(num_graphs=100,
+    train_dataset = FakeHeteroDataset(num_graphs=40,
                                             num_node_types=3,
                                             num_edge_types=152,
                                             avg_num_nodes=2700,
