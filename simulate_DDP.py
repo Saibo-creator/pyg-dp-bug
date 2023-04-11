@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import pickle
 import time
 from typing import List
 
@@ -56,21 +57,16 @@ class Net(torch.nn.Module):
 
 def run(rank, world_size: int):
 
-    train_dataset = FakeHeteroDataset(num_graphs=100,
-                                            num_node_types=3,
-                                            num_edge_types=152,
-                                            avg_num_nodes=2700,
-                                            avg_degree=1,
-                                            avg_num_channels=128,
-                                            edge_dim=64,
-                                            num_classes=10,
-                                            fix_num_channels=True)
+
 
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '12355'
     dist.init_process_group('nccl', rank=rank, world_size=world_size)
-    metadata = train_dataset.data.metadata()
 
+    # load the dataset with pickle
+    pickle_path = osp.join(osp.dirname(osp.realpath(__file__)), 'fake_dataset.pkl')
+    with open("tmp.pickle", "rb") as f:
+        train_dataset = pickle.load(f)
 
     train_sampler = DistributedSampler(train_dataset, num_replicas=world_size,
                                        rank=rank)
@@ -111,6 +107,23 @@ if __name__ == '__main__':
     # # Download and process the dataset on main process.
     # Dataset(dataset_name, root,
     #         pre_transform=T.ToSparseTensor(attr='edge_attr'))
+
+    train_dataset = FakeHeteroDataset(num_graphs=100,
+                                            num_node_types=3,
+                                            num_edge_types=152,
+                                            avg_num_nodes=2700,
+                                            avg_degree=1,
+                                            avg_num_channels=128,
+                                            edge_dim=64,
+                                            num_classes=10,
+                                            fix_num_channels=True)
+    # save the dataset with pickle
+    pickle_path = osp.join(osp.dirname(osp.realpath(__file__)), 'fake_dataset.pkl')
+    with open("tmp.pickle", "wb") as f:
+        pickle.dump((train_dataset), f)
+
+    metadata = train_dataset.data.metadata()
+
 
 
     gpu_ids = "0,1"  # Specify the IDs of the GPUs you want to use, separated by commas
